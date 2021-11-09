@@ -55,74 +55,41 @@ def get_sep(hash_method) -> int:
     return press_2
 
 
-def process(hash_method, sep: bool = False) -> tuple:
+def process(hash_method, get_data, size: int) -> np.array:
     data_set = []
     hashed = np.zeros(hashed_size, dtype=np.uint8)
-    if sep:
-        get_data = get_sep
-    else:
-        get_data = get_uni
 
-    for index in range(sample_s):
+    for index in range(size):
         data_set.append(get_data(hash_method))
 
-    err_s = 0
+    err_len = 15
+    err = np.zeros(err_len, dtype=np.uint32)
     for data in data_set:
         if hashed[data]:
-            err_s += 1
+            err[hashed[data] + 1] += 1
+            err[hashed[data]] -= 1
         hashed[data] += 1
 
-    for index in range(sample_b - sample_s):
-        data_set.append(get_data(hash_method))
-
-    err_b = 0
-    for data in data_set[sample_s:]:
-        if hashed[data]:
-            err_b += 1
-        hashed[data] += 1
-
-    return err_s, err_b
+    return err
 
 
 if __name__ == '__main__':
-    
-    xor_uni = process(xor_hash)
-    print(xor_uni)
-    add_uni = process(sum_hash)
-    print(add_uni)
-    sha_uni = process(shake_hash)
-    print(sha_uni)
+    uni_s = process(hash_method=xor_hash, get_data=get_uni, size=sample_s)
+    sep_s = process(hash_method=xor_hash, get_data=get_sep, size=sample_s)
+    uni_b = process(hash_method=xor_hash, get_data=get_uni, size=sample_b)
+    sep_b = process(hash_method=xor_hash, get_data=get_sep, size=sample_b)
 
-    xor_sep = process(xor_hash, True)
-    print(xor_sep)
-    add_sep = process(sum_hash, True)
-    print(add_sep)
-    sha_sep = process(shake_hash, True)
-    print(sha_sep)
+    msg = '|Name     |Sample    |2 times  |3 times  |4 times  ' \
+          '|5 times  |6 times  |7 times  |8 times  |9 times  |10 times'
+    m_1 = ' UniSmall  1000000   '
+    m_2 = ' SepSmall  1000000   '
+    m_3 = ' UniBig    10000000  '
+    m_4 = ' SepBig    10000000  '
 
-    uni_s, uni_b = [xor_uni[0], add_uni[0], sha_uni[0]], [xor_uni[1], add_uni[1], sha_uni[1]] 
-    sep_s, sep_b = [xor_sep[0], add_sep[0], sha_sep[0]], [xor_sep[1], add_sep[1], sha_sep[1]] 
-    
-    fig = plt.figure(figsize=(8, 10))
-    width = 0.25
-    labels = ['XOR', 'ADD', 'Shake-128']
-    x = np.arange(len(labels))
+    for index in range(2, 11):
+        m_1 += ' %-9s' % uni_s[index]
+        m_2 += ' %-9s' % sep_s[index]
+        m_3 += ' %-9s' % uni_b[index]
+        m_4 += ' %-9s' % sep_b[index]
 
-    def __plot(__uni, __sep, title):
-        plt.ylim((0, int(1.3 * max(__uni + __sep))))
-        uni_num = plt.bar(x - width / 2, __uni, width, label='Uni 96-Bit data')
-        sep_num = plt.bar(x + width / 2, __sep, width, label='Sep 96-Bit data')
-        plt.bar_label(uni_num, padding=3)
-        plt.bar_label(sep_num, padding=3)
-        plt.ylabel('Conflict')
-        plt.title(title)
-        plt.xticks(x, labels)
-        plt.legend()
-
-    plt.subplot(211)
-    __plot(uni_s, sep_s, 'Sample size: 1,000,000')
-
-    plt.subplot(212)
-    __plot(uni_b, sep_b, 'Sample size: 1,000,000 + 9,000,000')
-
-    plt.show()
+    print(msg, m_1, m_2, m_3, m_4, sep='\n')
