@@ -93,3 +93,11 @@ if __name__ == '__main__':
         m_4 += ' %-9s' % sep_b[index]
 
     print(msg, m_1, m_2, m_3, m_4, sep='\n')
+
+"""
+|Name     |Sample    |2 times  |3 times  |4 times  |5 times  |6 times  |7 times  |8 times  |9 times  |10 times
+ UniSmall  1000000    27850     575       12        0         0         0         0         0         0        
+ SepSmall  1000000    27869     557       12        0         0         0         0         0         0        
+ UniBig    10000000   1642449   327159    48417     5753      592       56        7         0         0        
+ SepBig    10000000   1643721   326907    48684     5890      560       48        4         0         0        
+"""
